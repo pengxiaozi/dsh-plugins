@@ -1,0 +1,4 @@
+# dsh-skill-panel bundle patch: inserts the Skills panel host plugin into the profile.
+- insert:
+    - id: skill-panel
+      name: 'dsh-skill-panel'

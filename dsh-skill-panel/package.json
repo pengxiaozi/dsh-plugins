@@ -1,0 +1,40 @@
+{
+  "name": "dsh-skill-panel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness Skills 管理面板：在设置里直观查看所有本地 skill（名称/来源/文件数/大小/描述），预览 SKILL.md 与文件清单，支持导出单个、选中或全部 skill 为 ZIP。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT",
+  "author": "pengxiaozi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pengxiaozi/dsh-plugins.git",
+    "directory": "dsh-skill-panel"
+  },
+  "homepage": "https://github.com/pengxiaozi/dsh-plugins/tree/main/dsh-skill-panel",
+  "bugs": {
+    "url": "https://github.com/pengxiaozi/dsh-plugins/issues"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "skills",
+    "agent-skills",
+    "zip-export"
+  ]
+}

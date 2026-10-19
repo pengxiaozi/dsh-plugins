@@ -1,0 +1,4 @@
+# dsh-mcp-panel bundle patch: inserts the MCP panel host plugin into the profile.
+- insert:
+    - id: mcp-panel
+      name: 'dsh-mcp-panel'

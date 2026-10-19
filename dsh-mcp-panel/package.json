@@ -1,0 +1,40 @@
+{
+  "name": "dsh-mcp-panel",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness MCP 连接面板：在设置里直观查看所有 MCP 服务器（托管连接 + profile 配置连接）及其工具数/状态，并支持新增、编辑、删除。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT",
+  "author": "pengxiaozi",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pengxiaozi/dsh-plugins.git",
+    "directory": "dsh-mcp-panel"
+  },
+  "homepage": "https://github.com/pengxiaozi/dsh-plugins/tree/main/dsh-mcp-panel",
+  "bugs": {
+    "url": "https://github.com/pengxiaozi/dsh-plugins/issues"
+  },
+  "keywords": [
+    "dsh-plugin",
+    "deepseek-harness",
+    "mcp",
+    "model-context-protocol",
+    "settings-ui"
+  ]
+}
