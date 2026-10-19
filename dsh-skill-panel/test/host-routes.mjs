@@ -29,6 +29,7 @@ apply(ctx)
 assert.ok(routes.has('/dsh-skill-panel/state'))
 assert.ok(routes.has('/dsh-skill-panel/body'))
 assert.ok(routes.has('/dsh-skill-panel/export'))
+assert.ok(routes.has('/dsh-skill-panel/reveal'))
 
 function fakeResponse() {
   const res = { statusCode: 0, headers: {}, chunks: [], setHeader(k, v) { this.headers[k] = v }, end(body) { if (body) this.chunks.push(Buffer.isBuffer(body) ? body : Buffer.from(body)) }, get body() { return Buffer.concat(this.chunks) } }
@@ -78,4 +79,12 @@ assert.equal(bodyRes2.statusCode, 200)
 const detail = JSON.parse(bodyRes2.body.toString('utf8'))
 assert.ok(detail.skill.content.includes('# alpha'))
 assert.ok(detail.files.some((f) => f.rel === 'examples/x.txt'))
+// reveal: unknown skill is rejected before any OS call
+const revealReq = fakeRequest(JSON.stringify({ name: 'no-such-skill' }))
+const revealRes = fakeResponse()
+routes.get('/dsh-skill-panel/reveal')(revealReq, revealRes)
+revealReq._send()
+await new Promise((resolve) => setTimeout(resolve, 300))
+assert.equal(revealRes.statusCode, 400)
+
 console.log('ALL HOST ROUTE TESTS PASSED')

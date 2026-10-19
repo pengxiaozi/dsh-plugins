@@ -7,7 +7,7 @@
 | 插件 | 设置入口 | 能力 |
 |---|---|---|
 | [dsh-mcp-panel](./dsh-mcp-panel/) | **MCP 连接** | 查看所有 MCP 服务器（托管 + profile 配置行）、连接状态与工具数；新增/编辑/删除；托管配置写入 profile 的 `cordis.patch.yml` 并热重载 |
-| [dsh-skill-panel](./dsh-skill-panel/) | **Skills** | 查看全部本地/内置 skill，搜索、来源过滤、SKILL.md 预览、文件清单；导出单个/选中/全部为 ZIP（含 `_manifest.json`） |
+| [dsh-skill-panel](./dsh-skill-panel/) | **Skills** | 查看全部本地/内置 skill，搜索、来源过滤、SKILL.md 预览、文件清单、**打开文件夹**；导出单个/选中/全部为 ZIP（含 `_manifest.json`） |
 
 两个插件都是 **host 半 + web client 半** 的结构，遵循 DSH 官方插件形态：
 

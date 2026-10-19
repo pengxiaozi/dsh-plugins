@@ -7,8 +7,10 @@
  *  - /export 生成标准 ZIP（deflate，UTF-8 文件名），可直接下载。
  */
 import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { basename, dirname, join, sep } from 'node:path'
+import { basename, dirname, join, resolve, sep } from 'node:path'
 import { homedir } from 'node:os'
+import { spawn } from 'node:child_process'
+import { createRequire } from 'node:module'
 import { deflateRawSync } from 'node:zlib'
 
 export const name = 'dsh-skill-panel'
@@ -20,6 +22,37 @@ const MAX_BYTES_PER_SKILL = 40 * 1024 * 1024
 const MAX_SKILLS_PER_EXPORT = 300
 const MAX_TOTAL_EXPORT_BYTES = 200 * 1024 * 1024
 const SKIP_DIRS = new Set(['.git', 'node_modules', '__pycache__', '.svn'])
+
+const requireFromHere = createRequire(import.meta.url)
+
+/**
+ * Open a directory in the OS file manager. Uses Electron's shell when the host
+ * runs inside Electron, otherwise falls back to explorer.exe / open / xdg-open.
+ * @param {string} dir
+ * @returns {Promise<void>}
+ */
+export function openDirectory(dir) {
+  let electronShell = null
+  try {
+    const electron = requireFromHere('electron')
+    if (electron && electron.shell && typeof electron.shell.openPath === 'function') electronShell = electron.shell
+  } catch {
+    electronShell = null
+  }
+  if (electronShell) {
+    const result = electronShell.openPath(dir)
+    if (result && typeof result.then === 'function') {
+      return result.then((error) => {
+        if (error) throw new Error(String(error))
+      })
+    }
+    return Promise.resolve()
+  }
+  const command = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open'
+  const child = spawn(command, [dir], { detached: true, stdio: 'ignore' })
+  child.unref()
+  return Promise.resolve()
+}
 
 /* ------------------------------------------------------------------ */
 /* ZIP writer (store/deflate, UTF-8 names, no dependency)              */
@@ -414,6 +447,15 @@ export function apply(ctx) {
   const profile = ctx.get('profileContext')
   const profileDir = profile && typeof profile.dir === 'string' ? profile.dir : process.cwd()
 
+  // Refresh the served client bundle after a profile reload so UI changes in
+  // client.js apply without restarting the whole host. No-op when unchanged.
+  try {
+    const clientModules = ctx.get('clientModules')
+    if (clientModules && typeof clientModules.rebuilt === 'function') clientModules.rebuilt('dsh-skill-panel')
+  } catch (error) {
+    log(profileDir, 'clientModules.rebuilt failed: ' + error)
+  }
+
   const rootsFromConfig = () => {
     const loader = ctx.get('loader')
     const dshHome = process.env.DSH_HOME || join(homedir(), '.dsh')
@@ -533,6 +575,29 @@ export function apply(ctx) {
     })
   }
 
+  const revealRoute = async (request, response) => {
+    const raw = await readBody(request)
+    let payload
+    try {
+      payload = JSON.parse(raw || '{}')
+    } catch {
+      return sendError(response, new Error('请求体不是合法 JSON'))
+    }
+    const { skills } = await listSkills()
+    const skill = skills.find((item) => item.name === payload.name)
+    if (!skill) return sendError(response, new Error('找不到 skill：' + String(payload.name)))
+    if (!skill.dir || !skill.exists) return sendError(response, new Error('该 skill 没有可打开的本地目录'))
+    const dir = resolve(skill.dir)
+    const rootPath = skill.rootPath ? resolve(skill.rootPath) : null
+    if (rootPath && dir !== rootPath && !dir.startsWith(rootPath + sep)) {
+      return sendError(response, new Error('拒绝打开技能目录之外的路径'))
+    }
+    if (!existsSync(dir)) return sendError(response, new Error('目录不存在：' + dir))
+    await openDirectory(dir)
+    log(profileDir, 'opened directory: ' + dir)
+    sendJson(response, 200, { ok: true, opened: dir })
+  }
+
   const exportRoute = async (request, response) => {
     try {
       const url = new URL(request.url || '/', 'http://x')
@@ -602,6 +667,9 @@ export function apply(ctx) {
     })
     register('/dsh-skill-panel/export', (request, response) => {
       exportRoute(request, response).catch((error) => sendError(response, error))
+    })
+    register('/dsh-skill-panel/reveal', (request, response) => {
+      revealRoute(request, response).catch((error) => sendError(response, error))
     })
     log(profileDir, 'routes mounted')
     ctx.effect(() => () => {

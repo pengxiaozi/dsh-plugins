@@ -19,6 +19,7 @@ window.__ModuleLoader__.load({
       state: '/dsh-skill-panel/state',
       body: '/dsh-skill-panel/body',
       export: '/dsh-skill-panel/export',
+      reveal: '/dsh-skill-panel/reveal',
     }
 
     const CSS = `
@@ -143,7 +144,7 @@ window.__ModuleLoader__.load({
     }
 
     function SkillTable(props) {
-      const { skills, selected, toggle, toggleAll, onView, onExportOne, onCopyPath } = props
+      const { skills, selected, toggle, toggleAll, onView, onExportOne, onCopyPath, onOpenDir } = props
       const allSelected = skills.length > 0 && skills.every((skill) => selected.has(skill.name))
       return h('div', { className: 'skill-panel-card' },
         h('table', null,
@@ -173,11 +174,12 @@ window.__ModuleLoader__.load({
               h('td', null,
                 h('button', { className: 'skill-panel-btn sm', onClick: () => onView(skill) }, '查看'),
                 h('button', { className: 'skill-panel-btn sm', onClick: () => onExportOne(skill), disabled: !skill.exists }, '导出'),
+                h('button', { className: 'skill-panel-btn sm', onClick: () => onOpenDir(skill), disabled: !skill.dir }, '打开目录'),
                 h('button', { className: 'skill-panel-btn sm', onClick: () => onCopyPath(skill), disabled: !skill.dir }, '复制路径')))))))
     }
 
     function Detail(props) {
-      const { detail, onClose, onExport, onCopyPath, busy } = props
+      const { detail, onClose, onExport, onCopyPath, onOpenDir, busy } = props
       const skill = detail.skill
       return h('div', { className: 'skill-panel-detail' },
         h('div', { className: 'skill-panel-detail-head' },
@@ -186,6 +188,7 @@ window.__ModuleLoader__.load({
             h('div', { className: 'muted', style: { fontSize: '12px', marginTop: '2px' } }, skill.description || '（无描述）')),
           h('div', { style: { display: 'flex', gap: '6px', flexShrink: 0 } },
             h('button', { className: 'skill-panel-btn sm primary', disabled: busy, onClick: () => onExport(skill) }, '导出 ZIP'),
+            h('button', { className: 'skill-panel-btn sm', disabled: !skill.dir, onClick: onOpenDir }, '打开目录'),
             h('button', { className: 'skill-panel-btn sm', onClick: onCopyPath }, '复制路径'),
             h('button', { className: 'skill-panel-btn sm', onClick: onClose }, '关闭'))),
         h('div', { className: 'skill-panel-meta' },
@@ -267,6 +270,23 @@ window.__ModuleLoader__.load({
           flash('已复制：' + (skill.dir || skill.path))
         } catch (e) {
           setError('复制失败：' + e.message)
+        }
+      }
+
+      const openDir = async (skill) => {
+        setBusy(true)
+        setError('')
+        try {
+          await request(API.reveal, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ name: skill.name }),
+          })
+          flash('已在文件管理器中打开：' + (skill.dir || ''))
+        } catch (e) {
+          setError(e.message)
+        } finally {
+          setBusy(false)
         }
       }
 
@@ -352,6 +372,7 @@ window.__ModuleLoader__.load({
                 onView: view,
                 onExportOne: (skill) => exportNames([skill.name], skill.name + '.zip'),
                 onCopyPath: copyPath,
+                onOpenDir: openDir,
               }),
           detail ? h(Detail, {
             detail,
@@ -359,6 +380,7 @@ window.__ModuleLoader__.load({
             onClose: () => setDetail(null),
             onExport: () => exportNames([detail.skill.name], detail.skill.name + '.zip'),
             onCopyPath: () => copyPath(detail.skill),
+            onOpenDir: () => openDir(detail.skill),
           }) : null))
     }
 
