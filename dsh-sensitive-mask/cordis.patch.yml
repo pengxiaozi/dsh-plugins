@@ -1,0 +1,4 @@
+# dsh-sensitive-mask bundle patch: inserts the masking host plugin into the profile.
+- insert:
+    - id: sensitive-mask
+      name: 'dsh-sensitive-mask'

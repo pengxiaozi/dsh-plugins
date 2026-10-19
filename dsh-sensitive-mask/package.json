@@ -1,0 +1,23 @@
+{
+  "name": "dsh-sensitive-mask",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness 脱敏显示插件：发往模型前按正则/字面量脱敏（占位符 / 部分隐藏 / 固定文本，样式可配置），工具执行前还原占位符；支持命中日志与日志查看。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT"
+}

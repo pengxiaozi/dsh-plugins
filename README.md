@@ -1,6 +1,6 @@
 # DSH Plugins — DeepSeek Harness 社区插件
 
-面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的两个 Web 插件：把 **MCP 连接管理** 和 **Skills 管理** 搬进设置页，纯本地运行、无任何外部上传。
+面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的三个 Web 插件：把 **MCP 连接管理**、**Skills 管理** 和 **敏感信息脱敏** 搬进设置页，纯本地运行、无任何外部上传。
 
 ## 插件一览
 
@@ -8,8 +8,9 @@
 |---|---|---|
 | [dsh-mcp-panel](./dsh-mcp-panel/) | **MCP 连接** | 查看所有 MCP 服务器（托管 + profile 配置行）、连接状态与工具数；新增/编辑/删除；托管配置写入 profile 的 `cordis.patch.yml` 并热重载 |
 | [dsh-skill-panel](./dsh-skill-panel/) | **Skills** | 查看全部本地/内置 skill，搜索、来源过滤、SKILL.md 预览、文件清单、**打开文件夹**；导出单个/选中/全部为 ZIP（含 `_manifest.json`） |
+| [dsh-sensitive-mask](./dsh-sensitive-mask/) | **脱敏显示** | 发往模型前按正则/字面量脱敏（占位符 / 部分隐藏 / 固定文本，全局默认 + 单规则覆盖，头尾位数可配）；仅占位符会在工具执行前还原；命中写本地 JSONL 日志（默认不存原文） |
 
-两个插件都是 **host 半 + web client 半** 的结构，遵循 DSH 官方插件形态：
+三个插件都是 **host 半 + web client 半** 的结构，遵循 DSH 官方插件形态：
 
 - `package.json` 声明 `dsh.bundle.patch` 与 `dsh.client`；
 - host 半通过 `ctx.inject(['webServer'])` 挂同源 HTTP 路由；
@@ -25,7 +26,7 @@
 
 ## 安装（本地 link，当前 DSH 版本）
 
-DSH 目前没有发布这两个包到 npm，用 profile 的 `link:` 安装：
+DSH 目前没有发布这些包到 npm，用 profile 的 `link:` 安装：
 
 ```bash
 # 1) 克隆本仓库
@@ -35,15 +36,18 @@ git clone https://github.com/pengxiaozi/dsh-plugins.git
 cd "$DSH_HOME/profiles/desktop"
 pnpm add "link:<repo>/dsh-mcp-panel"
 pnpm add "link:<repo>/dsh-skill-panel"
+pnpm add "link:<repo>/dsh-sensitive-mask"
 
 # 3) 在 profile package.json 的 dsh.profile.bundles 末尾追加：
 #    "dsh-mcp-panel",
-#    "dsh-skill-panel"
+#    "dsh-skill-panel",
+#    "dsh-sensitive-mask"
+#    或在 profile 的 cordis.patch.yml 里用 loader insert 行加载（推荐，宿主回写 bundles 时不会丢）
 
 # 4) 刷新 DSH 页面（Ctrl+F5）；未出现则重启 DSH
 ```
 
-卸载：从 bundles 移除两个名字，`pnpm remove dsh-mcp-panel dsh-skill-panel`，删除插件目录。
+卸载：从 bundles 移除三个名字，`pnpm remove dsh-mcp-panel dsh-skill-panel dsh-sensitive-mask`，删除插件目录。
 
 ## 兼容性
 
@@ -57,6 +61,7 @@ pnpm add "link:<repo>/dsh-skill-panel"
 - **MCP 面板**会把服务器配置（含 `headers` 中的 `Authorization` 等令牌）写入 **profile 的 `cordis.patch.yml` 明文**。请勿把 profile 目录提交到公共仓库；建议优先使用 `127.0.0.1` 本地地址。
 - **Skills 面板只读**：不修改、不删除 skill 文件；ZIP 在内存中生成后直接返回浏览器。
 - 导出路径与技能名来自 DSH 技能目录（`ctx.skills`），不接受任意文件系统路径。
+- **脱敏显示**：规则与命中日志只保存在本机 profile；日志默认只记规则、脱敏结果、长度与 hash，**不记原文**（可在设置里显式打开）；占位符映射只在进程内存中，重启即清空；插件不发起任何外部请求。
 
 ## 开发与测试
 
@@ -66,13 +71,15 @@ pnpm add "link:<repo>/dsh-skill-panel"
 node dsh-mcp-panel/test/smoke.mjs
 node dsh-skill-panel/test/smoke.mjs
 node dsh-skill-panel/test/host-routes.mjs   # 用假 ctx 跑通 state/body/export 路由
+node dsh-sensitive-mask/test/smoke.mjs
+node dsh-sensitive-mask/test/host-routes.mjs
 ```
 
 修改 host 代码后，在 profile 里触发一次配置重载（例如改一下 `cordis.patch.yml` 的时间戳内容），或重启 DSH，新代码才会生效。
 
 ## English
 
-Two community plugins for DeepSeek Harness: **dsh-mcp-panel** (inspect and edit MCP connections from Settings) and **dsh-skill-panel** (browse skills and export them as ZIP). Both run fully locally with no telemetry or external requests. Install via `pnpm add link:<path>` in your DSH profile and append the package names to `dsh.profile.bundles`.
+Three community plugins for DeepSeek Harness: **dsh-mcp-panel** (inspect and edit MCP connections from Settings), **dsh-skill-panel** (browse skills and export them as ZIP) and **dsh-sensitive-mask** (mask user input and tool results before they reach the model, with configurable placeholder / partial / fixed styles and local audit logs). All run fully locally with no telemetry or external requests. Install via `pnpm add link:<path>` in your DSH profile and append the package names to `dsh.profile.bundles`.
 
 ## License
 
