@@ -1,0 +1,23 @@
+{
+  "name": "dsh-sec-checklist",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness 安全渗透清单插件：内置常见渗透检查项与 Yakit 工具对照，支持自定义条目、选择要调用的渗透技能、本地安全配置（项目/授权/范围/测试账号），并把清单注册为运行时 skill 供 AI 在渗透测试时直接加载。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "license": "MIT"
+}

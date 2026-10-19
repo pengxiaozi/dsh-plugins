@@ -1,0 +1,4 @@
+# dsh-sec-checklist bundle patch: inserts the security checklist host plugin into the profile.
+- insert:
+    - id: sec-checklist
+      name: 'dsh-sec-checklist'
