@@ -15,6 +15,14 @@
 - host 半通过 `ctx.inject(['webServer'])` 挂同源 HTTP 路由；
 - client 半注册 `settings.section` 面板，通过 `window.__ModuleLoader__` 懒加载。
 
+## Skills
+
+| Skill | 作用 |
+|---|---|
+| [plan-gate](./skills/plan-gate/) | 首个需求先出「实施方案 + 涉及文件清单」再请求确认的闸门；确认后执行，**同一需求只做一次** |
+
+安装（全局技能目录）：把 `skills/plan-gate` 复制到 `<AGENTS_HOME>/skills/plan-gate`（Windows 默认 `%USERPROFILE%\.agents\skills\plan-gate`），刷新页面后技能出现在目录中；也可在对话中直接用 `/plan-gate` 显式调用。
+
 ## 安装（本地 link，当前 DSH 版本）
 
 DSH 目前没有发布这两个包到 npm，用 profile 的 `link:` 安装：
