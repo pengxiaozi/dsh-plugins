@@ -1,0 +1,26 @@
+{
+  "name": "dsh-runtime-inspector",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness 运行时透视插件：查看宿主在运行时拦截了什么（事件钩子表与真实决策记录）、审批 / 拦截 / workspace 规则、system prompt 装配链与渲染结果、宿主包字符串常量与 schema 默认值。只读、无外部请求，所有 HTTP 路由走 DSH 同源登录鉴权。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "license": "MIT"
+}

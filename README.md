@@ -1,6 +1,6 @@
 # DSH Plugins — DeepSeek Harness 社区插件
 
-面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的四个 Web 插件：**MCP 连接管理**、**Skills 管理**、**敏感信息脱敏** 和 **渗透测试安全清单**，全部搬进设置页，纯本地运行、无任何外部上传。
+面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的五个 Web 插件：**MCP 连接管理**、**Skills 管理**、**敏感信息脱敏**、**渗透测试安全清单** 和 **运行时透视**（拦截 / 规则 / 提示词链）。除运行时透视是左侧栏独立面板外，其余搬进设置页；全部纯本地运行、无任何外部上传。
 
 ## 插件一览
 
@@ -10,8 +10,9 @@
 | [dsh-skill-panel](./dsh-skill-panel/) | **Skills** | 查看全部本地/内置 skill，搜索、来源过滤、SKILL.md 预览、文件清单、**打开文件夹**；导出单个/选中/全部为 ZIP（含 `_manifest.json`） |
 | [dsh-sensitive-mask](./dsh-sensitive-mask/) | **脱敏显示** | 发往模型前按正则/字面量脱敏（占位符 / 部分隐藏 / 固定文本，全局默认 + 单规则覆盖，头尾位数可配）；仅占位符会在工具执行前还原；命中写本地 JSONL 日志（默认不存原文） |
 | [dsh-sec-checklist](./dsh-sec-checklist/) | **安全清单** | 渗透测试检查清单：内置 6 分类 36 项 + 自定义；项目/授权/范围/测试账号本机保存；勾选要调用的渗透 skill；保存后注册运行时技能 `security-checklist` 供 AI 加载；内置 Playbook 与 Yakit MCP 工具对照 |
+| [dsh-runtime-inspector](./dsh-runtime-inspector/) | **左侧栏「运行时透视」** | 查看宿主真正拦截了什么：事件钩子表（监听器按 Loader 包归属、注册顺序、prepend）、运行时拦截决策记录（pass / intercept / error）、审批与 workspace 规则、system prompt 装配链与渲染结果、宿主包字符串常量与 schema 默认值。只读、同源登录鉴权、无外部请求 |
 
-四个插件都是 **host 半 + web client 半** 的结构，遵循 DSH 官方插件形态：
+五个插件都是 **host 半 + web client 半** 的结构，遵循 DSH 官方插件形态：
 
 - `package.json` 声明 `dsh.bundle.patch` 与 `dsh.client`；
 - host 半通过 `ctx.inject(['webServer'])` 挂同源 HTTP 路由；
@@ -39,24 +40,26 @@ pnpm add "link:<repo>/dsh-mcp-panel"
 pnpm add "link:<repo>/dsh-skill-panel"
 pnpm add "link:<repo>/dsh-sensitive-mask"
 pnpm add "link:<repo>/dsh-sec-checklist"
+pnpm add "link:<repo>/dsh-runtime-inspector"
 
 # 3) 在 profile package.json 的 dsh.profile.bundles 末尾追加：
 #    "dsh-mcp-panel",
 #    "dsh-skill-panel",
 #    "dsh-sensitive-mask",
-#    "dsh-sec-checklist"
+#    "dsh-sec-checklist",
+#    "dsh-runtime-inspector"
 #    或在 profile 的 cordis.patch.yml 里用 loader insert 行加载（推荐，宿主回写 bundles 时不会丢）
 
 # 4) 刷新 DSH 页面（Ctrl+F5）；未出现则重启 DSH
 ```
 
-卸载：从 bundles 移除四个名字，`pnpm remove dsh-mcp-panel dsh-skill-panel dsh-sensitive-mask dsh-sec-checklist`，删除插件目录。
+卸载：从 bundles 移除五个名字，`pnpm remove dsh-mcp-panel dsh-skill-panel dsh-sensitive-mask dsh-sec-checklist dsh-runtime-inspector`，删除插件目录。
 
 ## 兼容性
 
-- 已在 **DeepSeek Harness 0.2.1-rc.1**（Windows 桌面版，`desktop` profile / web 面）验证；
-- 只使用公开插件面：`webServer`、`loader`、`configEditor`、`tools`、`skills`、`profileContext`；
-- 不依赖任何第三方运行时依赖，插件代码只用 Node 内置模块。
+- 已在 **DeepSeek Harness 0.2.1-rc.1 ~ 0.2.1-rc.3**（Windows 桌面版，`desktop` profile / web 面）验证；
+- 只使用公开插件面：`webServer`、`loader`、`configEditor`、`tools`、`skills`、`profileContext`；运行时透视另外使用 `connection`、`events`（活事件表）、`sessions`、`approval`、`workspaceRegistry`、`systemPrompt`；
+- 不依赖任何第三方运行时依赖，插件代码只用 Node 内置模块；运行时透视读取宿主包源码时限定在安装目录的 `node_modules/@deepseek-ai/*` 内。
 
 ## 安全与隐私
 
@@ -66,6 +69,7 @@ pnpm add "link:<repo>/dsh-sec-checklist"
 - 导出路径与技能名来自 DSH 技能目录（`ctx.skills`），不接受任意文件系统路径。
 - **脱敏显示**：规则与命中日志只保存在本机 profile；日志默认只记规则、脱敏结果、长度与 hash，**不记原文**（可在设置里显式打开）；占位符映射只在进程内存中，重启即清空；插件不发起任何外部请求。
 - **安全清单**：项目/授权/范围/测试账号只保存在本机 profile（`sec-checklist.json`）；密码为本地明文，默认**不会**写进运行时技能或模型上下文（需在设置里显式打开「把密码写进清单」）；插件不内置任何真实凭据，不发起外部请求。
+- **运行时透视只读**：所有 `/dsh-runtime-inspector/*` 路由先过 `ctx.connection.requestRejection`（Host/Origin + 登录 cookie），未登录返回 401；插件只观察 `system-prompt/assemble`、`llm/stream`、`tools/*` 等事件并原样 `next()`，不写配置、不改 system prompt、不注入内容、无外部请求；`source` 路由只能读安装目录 `@deepseek-ai` 包内文件并拒绝路径穿越；拦截记录只存在进程内存环形缓冲（200 条，插件重载即清空）。
 
 ## 开发与测试
 
@@ -79,13 +83,15 @@ node dsh-sensitive-mask/test/smoke.mjs
 node dsh-sensitive-mask/test/host-routes.mjs
 node dsh-sec-checklist/test/smoke.mjs
 node dsh-sec-checklist/test/host-routes.mjs   # 假 ctx：运行时技能注册、state/config/preview/doc/reveal/reset
+node dsh-runtime-inspector/test/smoke.mjs        # 纯函数：常量/默认值解析、prompt 渲染、钩子归属、规则快照
+node dsh-runtime-inspector/test/host-routes.mjs  # 假 ctx 跑通 apply()、HTTP 路由、鉴权拒绝与工具注册
 ```
 
 修改 host 代码后，在 profile 里触发一次配置重载（例如改一下 `cordis.patch.yml` 的时间戳内容），或重启 DSH，新代码才会生效。
 
 ## English
 
-Four community plugins for DeepSeek Harness: **dsh-mcp-panel** (inspect and edit MCP connections from Settings), **dsh-skill-panel** (browse skills and export them as ZIP), **dsh-sensitive-mask** (mask user input and tool results before they reach the model, with configurable placeholder / partial / fixed styles and local audit logs) and **dsh-sec-checklist** (pentest checklist with project/scope/credentials config, selectable pentest skills and a generated `security-checklist` runtime skill the agent can load). All run fully locally with no telemetry or external requests. Install via `pnpm add link:<path>` in your DSH profile and append the package names to `dsh.profile.bundles`.
+Five community plugins for DeepSeek Harness: **dsh-mcp-panel** (inspect and edit MCP connections from Settings), **dsh-skill-panel** (browse skills and export them as ZIP), **dsh-sensitive-mask** (mask user input and tool results before they reach the model, with configurable placeholder / partial / fixed styles and local audit logs), **dsh-sec-checklist** (pentest checklist with project/scope/credentials config, selectable pentest skills and a generated `security-checklist` runtime skill the agent can load) and **dsh-runtime-inspector** (a read-only runtime inspector: live event hook table with Loader package attribution, runtime interception decisions, approval / interception / workspace rules, the real system-prompt assembly chain and rendered prompt, host-package string constants and schema defaults). All run fully locally with no telemetry or external requests. Install via `pnpm add link:<path>` in your DSH profile and append the package names to `dsh.profile.bundles`.
 
 ## License
 

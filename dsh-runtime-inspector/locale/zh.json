@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "运行时透视",
+    "description": "查看当前 DSH 进程的真实运行逻辑：运行时拦截了哪些事件、谁挂的钩子、审批/拦截/workspace 规则、system prompt 装配链、宿主包字符串常量与默认值。"
+  }
+}

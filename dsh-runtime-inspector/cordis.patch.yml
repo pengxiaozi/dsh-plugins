@@ -1,0 +1,4 @@
+# dsh-runtime-inspector bundle patch: inserts the runtime inspector host plugin into the profile.
+- insert:
+    - id: runtime-inspector
+      name: 'dsh-runtime-inspector'

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Runtime Inspector",
+    "description": "Inspect the live DSH process: which seams the host intercepts and who hooks them, approval/interception/workspace rules, the system-prompt assembly chain, host-package string constants and default values."
+  }
+}

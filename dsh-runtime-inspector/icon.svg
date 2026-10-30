@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Runtime inspector">
+  <defs>
+    <linearGradient id="ri-lens" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4aa8ff"/>
+      <stop offset="1" stop-color="#1c5fd0"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="currentColor" stroke-opacity="0.18" stroke-width="2"/>
+  <path d="M14 22h10M14 32h7M14 42h10" stroke="currentColor" stroke-opacity="0.55" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="30" cy="32" r="9" fill="none" stroke="currentColor" stroke-opacity="0.6" stroke-width="3"/>
+  <circle cx="30" cy="32" r="3.4" fill="url(#ri-lens)"/>
+  <path d="M36.5 38.5 46 48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="32" cy="22" r="2" fill="#4aa8ff"/>
+  <circle cx="38" cy="26" r="1.6" fill="#4aa8ff" fill-opacity="0.8"/>
+  <circle cx="24" cy="38" r="1.6" fill="#4aa8ff" fill-opacity="0.8"/>
+</svg>
