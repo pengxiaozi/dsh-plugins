@@ -1,0 +1,4 @@
+# dsh-session-exporter bundle patch: inserts the session exporter host plugin into the profile.
+- insert:
+    - id: session-exporter
+      name: 'dsh-session-exporter'

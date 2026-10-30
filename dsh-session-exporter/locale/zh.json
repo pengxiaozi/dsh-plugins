@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "会话导出",
+    "description": "按工作区导出全部会话记录：单会话或整批导出 JSON / JSONL / Markdown / 问答 JSON，下载 ZIP 或写进工作区，并可让 AI 提炼为 Markdown 文档。"
+  }
+}

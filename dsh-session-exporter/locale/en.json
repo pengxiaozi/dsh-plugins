@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Session Export",
+    "description": "Export every session of a workspace: one session or a whole batch as JSON / JSONL / Markdown / Q&A JSON, download a ZIP or write files into the workspace, then let the agent distill a Markdown document."
+  }
+}

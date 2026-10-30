@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Session export">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="currentColor" stroke-opacity="0.18" stroke-width="2"/>
+  <rect x="14" y="12" width="26" height="7" rx="2" fill="none" stroke="currentColor" stroke-opacity="0.6" stroke-width="2.4"/>
+  <rect x="14" y="23" width="20" height="7" rx="2" fill="none" stroke="currentColor" stroke-opacity="0.45" stroke-width="2.4"/>
+  <rect x="14" y="34" width="26" height="7" rx="2" fill="none" stroke="currentColor" stroke-opacity="0.6" stroke-width="2.4"/>
+  <path d="M43 22v14" stroke="#3b82f6" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M36.5 30.5 43 37l6.5-6.5" fill="none" stroke="#3b82f6" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M33 46h20" stroke="#3b82f6" stroke-width="3" stroke-linecap="round"/>
+</svg>

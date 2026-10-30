@@ -1,0 +1,26 @@
+{
+  "name": "dsh-session-exporter",
+  "version": "0.1.0",
+  "private": true,
+  "description": "DeepSeek Harness 会话导出插件：按工作区列出全部会话，单会话或整批导出为 JSON / JSONL / Markdown / 问答 JSON，下载 ZIP 或写进工作区，并让 AI 基于导出内容提炼 Markdown 文档。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client/client.js",
+    "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true
+    }
+  },
+  "license": "MIT"
+}
