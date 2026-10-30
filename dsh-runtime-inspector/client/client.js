@@ -424,6 +424,53 @@ window.__ModuleLoader__.load({
       details: { marginTop: 6 },
     }
 
+// Compact plain overrides: low radii, tight spacing, flat controls. The base
+    // map above keeps the layout semantic; this pass only changes geometry so
+    // every panel reads as one dense, direct information surface.
+    Object.assign(S, {
+      header: { ...S.header, padding: '12px 16px 0' },
+      title: { ...S.title, fontSize: 15 },
+      version: { ...S.version, fontSize: 11 },
+      subtitle: { ...S.subtitle, margin: '3px 0 8px', fontSize: 11.5, maxWidth: 980 },
+      tabs: { ...S.tabs, gap: 0 },
+      tab: { ...S.tab, padding: '6px 10px', fontSize: 12.5 },
+      body: { ...S.body, padding: '10px 16px 20px' },
+      grid: { ...S.grid, gap: 10 },
+      card: { ...S.card, borderRadius: 3, padding: '9px 11px', marginBottom: 9 },
+      cardHead: { ...S.cardHead, marginBottom: 5 },
+      cardTitle: { ...S.cardTitle, fontSize: 12.5 },
+      hint: { ...S.hint, margin: '0 0 5px', fontSize: 10.5 },
+      chips: { ...S.chips, gap: 4, marginBottom: 7 },
+      chip: { ...S.chip, borderRadius: 2, padding: '1px 6px', fontSize: 10.5 },
+      item: { ...S.item, padding: '4px 0' },
+      itemHead: { ...S.itemHead, gap: 6 },
+      orderChip: { ...S.orderChip, borderRadius: 2, minWidth: 32, padding: '0 3px', fontSize: 10 },
+      itemName: { ...S.itemName, fontSize: 11.5 },
+      flag: { ...S.flag, borderRadius: 2, padding: '0 4px', fontSize: 9.5 },
+      button: {
+        appearance: 'none',
+        height: 24,
+        padding: '0 8px',
+        borderRadius: 3,
+        border: '1px solid var(--dsw-alias-border-l2)',
+        background: 'transparent',
+        color: 'var(--dsw-alias-label-primary)',
+        fontSize: 11.5,
+        lineHeight: '22px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      },
+      input: { ...S.input, borderRadius: 3, height: 24, padding: '0 6px', fontSize: 11.5 },
+      select: { ...S.select, borderRadius: 3, height: 24, padding: '0 6px', fontSize: 11.5 },
+      toolbar: { ...S.toolbar, gap: 6, marginBottom: 7 },
+      pre: { ...S.pre, borderRadius: 3, padding: '7px 9px', fontSize: 11 },
+      bigPre: { ...S.bigPre, borderRadius: 3, padding: '8px 10px', fontSize: 11 },
+      row: { ...S.row, gap: 6, padding: '4px 2px' },
+      rowHead: { ...S.rowHead, fontSize: 10.5, padding: '0 2px 4px' },
+      state: { ...S.state, fontSize: 11.5, padding: '8px 0' },
+      error: { ...S.error, fontSize: 11.5, padding: '6px 0' },
+    })
+
     function formatTime(value) {
       if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
       try {

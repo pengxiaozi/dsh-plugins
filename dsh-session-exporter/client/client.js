@@ -1,8 +1,7 @@
 /**
  * dsh-session-exporter — client half.
- * Sidebar entry "会话导出" + a main panel that lists workspace sessions and
- * exports them as JSON / JSONL / Markdown / Q&A JSON (download or write into
- * the workspace). All data comes from the host half's same-origin routes.
+ * Sidebar entry "会话导出" + a compact, plain main panel that lists workspace
+ * sessions and exports them as JSON / JSONL / Markdown / Q&A JSON.
  */
 window.__ModuleLoader__.load({
   id: 'dsh-session-exporter',
@@ -29,37 +28,28 @@ window.__ModuleLoader__.load({
       selectAll: '全选',
       clear: '清空',
       formats: '格式',
-      downloadZip: '下载选中 ZIP',
-      downloadAll: '下载整工作区 ZIP',
-      saveToWorkspace: '导出到工作区',
-      saveAll: '导出整工作区到磁盘',
-      savedAt: '已写入',
-      openDir: '目录',
+      downloadAll: '下载 ZIP',
+      saveSelected: '导出选中到工作区',
+      saveAll: '导出全部到工作区',
+      saveEmpty: '请先选择至少一个会话。',
+      savedResult: '已写入',
       events: '事件',
       size: '大小',
       created: '创建时间',
       titleCol: '标题',
       idCol: '会话 ID',
-      actions: '操作',
+      actions: '下载',
       noSessions: '这个工作区没有会话。',
-      hint: '数据来自 ctx.sessionPersistence（含冷会话与子会话）；"导出到工作区"会写到 <workspace>/dsh-session-exports/<时间戳>/，并生成 all.md / all.json / all.qa.json 与 manifest.json。',
-      md: 'Markdown',
-      json: 'JSON（无损）',
+      hint: '数据来自 ctx.sessionPersistence（含冷会话与子会话）。"导出到工作区"写入 <workspace>/dsh-session-exports/<时间戳>/，并生成 all.md / all.json / all.qa.json 与 manifest.json。',
+      md: 'MD',
+      json: 'JSON',
       jsonl: 'JSONL',
-      qa: '问答 JSON',
-      exportSingle: '下载',
-      copied: '已复制',
+      qa: 'QA',
       current: '当前工作区',
-      subtitles: '子会话',
-      parent: '父会话',
-      formatCount: '格式',
-      saveEmpty: '请先选择至少一个会话。',
-      savedResult: '导出完成',
-      files: '文件',
-      sessionsCol: '会话',
-      noWorkspace: '没有可用的工作区，请在左侧打开一个工作区会话。',
-      unknown: '未知',
-      toolHint: 'Agent 工具：dsh_session_export（action=list / export / save / workspaces）。',
+      none: '—',
+      unknown: '未命名',
+      toolHint: 'Agent 工具：dsh_session_export（list / export / save / workspaces）。',
+      total: '共',
     }
 
     const en = {
@@ -76,101 +66,146 @@ window.__ModuleLoader__.load({
       selectAll: 'Select all',
       clear: 'Clear',
       formats: 'Formats',
-      downloadZip: 'Download selected ZIP',
-      downloadAll: 'Download workspace ZIP',
-      saveToWorkspace: 'Write into workspace',
-      saveAll: 'Write whole workspace',
-      savedAt: 'Written to',
-      openDir: 'Directory',
-      events: 'events',
-      size: 'size',
-      created: 'created',
+      downloadAll: 'Download ZIP',
+      saveSelected: 'Write selected',
+      saveAll: 'Write all',
+      saveEmpty: 'Select at least one session first.',
+      savedResult: 'Written to',
+      events: 'Events',
+      size: 'Size',
+      created: 'Created',
       titleCol: 'Title',
       idCol: 'Session id',
-      actions: 'Actions',
+      actions: 'Download',
       noSessions: 'No sessions in this workspace.',
-      hint: 'Data comes from ctx.sessionPersistence (cold sessions and subagent sessions included). "Write into workspace" saves under <workspace>/dsh-session-exports/<timestamp>/ with all.md / all.json / all.qa.json and manifest.json.',
-      md: 'Markdown',
-      json: 'JSON (lossless)',
+      hint: 'Data comes from ctx.sessionPersistence (cold and subagent sessions included). "Write into workspace" saves under <workspace>/dsh-session-exports/<timestamp>/ with all.md / all.json / all.qa.json and manifest.json.',
+      md: 'MD',
+      json: 'JSON',
       jsonl: 'JSONL',
-      qa: 'Q&A JSON',
-      exportSingle: 'Download',
-      copied: 'Copied',
+      qa: 'QA',
       current: 'current workspace',
-      subtitles: 'subagent',
-      parent: 'parent',
-      formatCount: 'formats',
-      saveEmpty: 'Select at least one session first.',
-      savedResult: 'Export finished',
-      files: 'files',
-      sessionsCol: 'sessions',
-      noWorkspace: 'No workspace available — open a workspace session on the left first.',
-      unknown: 'unknown',
-      toolHint: 'Agent tool: dsh_session_export (action=list / export / save / workspaces).',
+      none: '—',
+      unknown: 'untitled',
+      toolHint: 'Agent tool: dsh_session_export (list / export / save / workspaces).',
+      total: 'total',
     }
 
+    const FONT = 'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif'
+    const MONO = 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace'
+
     const S = {
-      root: { height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-primary)', fontFamily: 'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif' },
-      header: { padding: '18px 24px 0', flex: '0 0 auto' },
-      titleRow: { display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' },
-      title: { margin: 0, fontSize: 18, fontWeight: 600 },
-      version: { fontSize: 12, color: 'var(--dsw-alias-label-secondary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' },
-      subtitle: { margin: '6px 0 12px', fontSize: 12.5, lineHeight: 1.55, color: 'var(--dsw-alias-label-secondary)', maxWidth: 920 },
-      body: { flex: '1 1 auto', minHeight: 0, overflow: 'auto', padding: '14px 24px 28px' },
-      card: { border: '1px solid var(--dsw-alias-border-l1)', background: 'var(--dsw-alias-bg-layer-1)', borderRadius: 10, padding: '12px 14px', marginBottom: 14, minWidth: 0 },
-      cardHead: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 8, flexWrap: 'wrap' },
-      cardTitle: { margin: 0, fontSize: 13.5, fontWeight: 600 },
-      hint: { margin: '0 0 10px', fontSize: 11.5, lineHeight: 1.55, color: 'var(--dsw-alias-label-secondary)' },
-      toolbar: { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 },
-      chips: { display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 },
-      chip: { display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)', background: 'var(--dsw-alias-bg-layer-2)', border: '1px solid var(--dsw-alias-border-l1)', borderRadius: 999, padding: '2px 9px', lineHeight: 1.6 },
-      chipValue: { color: 'var(--dsw-alias-label-primary)', fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace' },
-      button: { appearance: 'none', fontSize: 11.5, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--dsw-alias-border-l2)', background: 'var(--dsw-alias-bg-layer-2)', color: 'var(--dsw-alias-label-primary)', cursor: 'pointer' },
-      buttonPrimary: { appearance: 'none', fontSize: 11.5, padding: '4px 10px', borderRadius: 6, border: '1px solid var(--dsw-alias-brand-primary)', background: 'var(--dsw-alias-brand-primary)', color: '#fff', cursor: 'pointer' },
-      input: { appearance: 'none', fontSize: 12, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--dsw-alias-border-l1)', background: 'var(--dsw-alias-bg-layer-2)', color: 'var(--dsw-alias-label-primary)', minWidth: 220 },
-      select: { appearance: 'none', fontSize: 12, padding: '5px 9px', borderRadius: 6, border: '1px solid var(--dsw-alias-border-l1)', background: 'var(--dsw-alias-bg-layer-2)', color: 'var(--dsw-alias-label-primary)', maxWidth: 380 },
-      rowHead: { display: 'grid', gridTemplateColumns: '28px minmax(180px, 1.6fr) minmax(120px, 1.1fr) 78px 78px 86px minmax(120px, 1fr)', gap: 8, fontSize: 11, color: 'var(--dsw-alias-label-secondary)', padding: '0 2px 6px', fontWeight: 600, borderBottom: '1px solid var(--dsw-alias-border-l1)' },
-      row: { display: 'grid', gridTemplateColumns: '28px minmax(180px, 1.6fr) minmax(120px, 1.1fr) 78px 78px 86px minmax(120px, 1fr)', gap: 8, alignItems: 'center', fontSize: 12, padding: '6px 2px', borderBottom: '1px solid var(--dsw-alias-border-l1)' },
-      mono: { fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 11.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-      muted: { fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)' },
-      state: { fontSize: 12.5, color: 'var(--dsw-alias-label-secondary)', padding: '10px 0' },
-      error: { fontSize: 12.5, color: 'var(--dsw-alias-state-error-primary)', padding: '8px 0', whiteSpace: 'pre-wrap' },
-      link: { fontSize: 11.5, color: 'var(--dsw-alias-brand-primary)', textDecoration: 'none', marginRight: 8, cursor: 'pointer' },
-      pre: { margin: '6px 0 0', padding: '9px 11px', background: 'var(--dsw-alias-bg-layer-2)', border: '1px solid var(--dsw-alias-border-l1)', borderRadius: 8, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: 11.5, lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word', maxHeight: 260, overflow: 'auto' },
-      checkbox: { width: 14, height: 14, cursor: 'pointer', accentColor: 'var(--dsw-alias-brand-primary)' },
+      root: { height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--dsw-alias-bg-base)', color: 'var(--dsw-alias-label-primary)', fontFamily: FONT, fontSize: 12 },
+      header: { padding: '12px 16px 8px', flex: '0 0 auto', borderBottom: '1px solid var(--dsw-alias-border-l1)' },
+      titleRow: { display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+      title: { margin: 0, fontSize: 15, fontWeight: 650, letterSpacing: 0.1 },
+      version: { fontSize: 11, color: 'var(--dsw-alias-label-secondary)', fontFamily: MONO },
+      subtitle: { margin: '3px 0 0', fontSize: 11.5, lineHeight: 1.5, color: 'var(--dsw-alias-label-secondary)', maxWidth: 980 },
+      body: { flex: '1 1 auto', minHeight: 0, overflow: 'auto', padding: '10px 16px 20px' },
+      toolbar: { display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginBottom: 8 },
+      spacer: { flex: '1 1 auto' },
+      sep: { width: 1, height: 16, background: 'var(--dsw-alias-border-l1)', margin: '0 2px' },
+      label: { fontSize: 11, color: 'var(--dsw-alias-label-secondary)', whiteSpace: 'nowrap' },
+      button: {
+        appearance: 'none',
+        height: 24,
+        padding: '0 8px',
+        borderRadius: 3,
+        border: '1px solid var(--dsw-alias-border-l2)',
+        background: 'transparent',
+        color: 'var(--dsw-alias-label-primary)',
+        fontSize: 11.5,
+        lineHeight: '22px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        fontFamily: FONT,
+      },
+      buttonPrimary: {
+        appearance: 'none',
+        height: 24,
+        padding: '0 9px',
+        borderRadius: 3,
+        border: '1px solid var(--dsw-alias-brand-primary)',
+        background: 'var(--dsw-alias-brand-primary)',
+        color: '#fff',
+        fontSize: 11.5,
+        lineHeight: '22px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        fontFamily: FONT,
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+      },
+      buttonDisabled: { opacity: 0.45, cursor: 'default' },
+      linkButton: {
+        appearance: 'none',
+        height: 24,
+        padding: '0 8px',
+        borderRadius: 3,
+        border: '1px solid var(--dsw-alias-border-l2)',
+        background: 'transparent',
+        color: 'var(--dsw-alias-label-primary)',
+        fontSize: 11.5,
+        lineHeight: '22px',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        textDecoration: 'none',
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontFamily: FONT,
+      },
+      select: {
+        appearance: 'none',
+        height: 24,
+        padding: '0 6px',
+        borderRadius: 3,
+        border: '1px solid var(--dsw-alias-border-l1)',
+        background: 'var(--dsw-alias-bg-layer-1)',
+        color: 'var(--dsw-alias-label-primary)',
+        fontSize: 11.5,
+        maxWidth: 360,
+        fontFamily: FONT,
+      },
+      checkbox: { width: 13, height: 13, margin: 0, cursor: 'pointer', accentColor: 'var(--dsw-alias-brand-primary)' },
+      checkGroup: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)', cursor: 'pointer' },
+      muted: { fontSize: 11, color: 'var(--dsw-alias-label-secondary)', whiteSpace: 'nowrap' },
+      tableBox: { border: '1px solid var(--dsw-alias-border-l1)', borderRadius: 3, overflow: 'auto', background: 'var(--dsw-alias-bg-layer-1)' },
+      rowGrid: '22px minmax(150px, 1.6fr) 128px 54px 72px 118px 112px',
+      head: { display: 'grid', gridTemplateColumns: '22px minmax(150px, 1.6fr) 128px 54px 72px 118px 112px', gap: 8, alignItems: 'center', padding: '5px 8px', background: 'var(--dsw-alias-bg-layer-2)', fontSize: 10.5, fontWeight: 600, color: 'var(--dsw-alias-label-secondary)', borderBottom: '1px solid var(--dsw-alias-border-l1)' },
+      row: { display: 'grid', gridTemplateColumns: '22px minmax(150px, 1.6fr) 128px 54px 72px 118px 112px', gap: 8, alignItems: 'center', padding: '4px 8px', borderBottom: '1px solid var(--dsw-alias-border-l1)', fontSize: 11.5 },
+      cellTitle: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+      mono: { fontFamily: MONO, fontSize: 11, color: 'var(--dsw-alias-label-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+      num: { fontFamily: MONO, fontSize: 11, color: 'var(--dsw-alias-label-secondary)', textAlign: 'right' },
+      link: { color: 'var(--dsw-alias-brand-primary)', textDecoration: 'none', fontSize: 11, marginRight: 6, cursor: 'pointer', whiteSpace: 'nowrap' },
+      noticeOk: { fontSize: 11, color: 'var(--dsw-alias-state-success-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 520 },
+      noticeError: { fontSize: 11, color: 'var(--dsw-alias-state-error-primary)', whiteSpace: 'normal', wordBreak: 'break-all' },
+      state: { fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)', padding: '10px 8px' },
+      errorBox: { fontSize: 11.5, color: 'var(--dsw-alias-state-error-primary)', padding: '8px', whiteSpace: 'pre-wrap' },
+      hint: { margin: '6px 0 0', fontSize: 10.5, lineHeight: 1.5, color: 'var(--dsw-alias-label-secondary)' },
     }
 
     function formatTime(value) {
       if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
       try {
-        return new Date(value).toLocaleString()
+        const date = new Date(value)
+        const pad = (n) => String(n).padStart(2, '0')
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
       } catch {
-        return String(value)
+        return '—'
       }
     }
 
     function fmtBytes(value) {
       if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
-      if (value < 1024) return `${value} B`
-      if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KiB`
-      return `${(value / 1048576).toFixed(1)} MiB`
+      if (value < 1024) return `${value}B`
+      if (value < 1024 * 1024) return `${(value / 1024).toFixed(0)}K`
+      return `${(value / 1048576).toFixed(1)}M`
     }
 
     function shortId(value) {
       if (typeof value !== 'string') return '—'
       const text = value.startsWith('session-') ? value.slice(8) : value
-      return text.length > 10 ? `${text.slice(0, 10)}…` : text
-    }
-
-    function Chip(props) {
-      return h('span', { style: S.chip }, props.label, props.value === undefined ? null : h('span', { style: S.chipValue }, String(props.value)))
-    }
-
-    function Card(props) {
-      return h('section', { style: S.card },
-        h('div', { style: S.cardHead }, h('h2', { style: S.cardTitle }, props.title), props.actions === undefined ? null : h('div', { style: { display: 'flex', gap: 6, flexWrap: 'wrap' } }, props.actions)),
-        props.hint === undefined ? null : h('p', { style: S.hint }, props.hint),
-        props.children)
+      return text.length > 8 ? text.slice(0, 8) : text
     }
 
     function useApi(path, deps) {
@@ -203,19 +238,22 @@ window.__ModuleLoader__.load({
       const [allMode, setAllMode] = useState(false)
       const [formats, setFormats] = useState(['md'])
       const [selected, setSelected] = useState([])
-      const [busy, setBusy] = useState('')
+      const [busy, setBusy] = useState(false)
       const [notice, setNotice] = useState(null)
       const workspacesState = useApi('/workspaces', [nonce])
-      const query = allMode ? '?all=1&titles=1' : `?workspace=${encodeURIComponent(workspace)}&titles=1`
-      const sessionsState = useApi(`/sessions${workspace === '' && !allMode ? '?titles=1' : query}`, [nonce, workspace, allMode])
+      const sessionsState = useApi(
+        allMode ? '/sessions?all=1&titles=1' : workspace === '' ? '/sessions?titles=1' : `/sessions?workspace=${encodeURIComponent(workspace)}&titles=1`,
+        [nonce, workspace, allMode],
+      )
 
       const workspaces = workspacesState.status === 'ready' ? workspacesState.data.workspaces || [] : []
       const sessions = sessionsState.status === 'ready' ? sessionsState.data.sessions || [] : []
       const workspacePath = sessionsState.status === 'ready' ? sessionsState.data.workspace || workspace : workspace
+      const allSelected = sessions.length > 0 && selected.length === sessions.length
 
       useEffect(() => {
-        if (workspace === '' && workspaces.length > 0) setWorkspace(workspaces[0].path)
-      }, [workspacesState.status, workspace, workspaces.length])
+        if (workspace === '' && workspaces.length > 0 && !allMode) setWorkspace(workspaces[0].path)
+      }, [workspacesState.status, workspace, workspaces.length, allMode])
 
       useEffect(() => { setSelected([]) }, [workspace, allMode, nonce])
 
@@ -227,12 +265,10 @@ window.__ModuleLoader__.load({
         setSelected((current) => current.includes(id) ? current.filter((entry) => entry !== id) : [...current, id])
       }
 
-      const allSelected = sessions.length > 0 && selected.length === sessions.length
-
       const save = useCallback(async (mode) => {
         const ids = mode === 'all' ? 'all' : selected
         if (mode !== 'all' && ids.length === 0) { setNotice({ kind: 'error', text: t('saveEmpty') }); return }
-        setBusy('save')
+        setBusy(true)
         setNotice(null)
         try {
           const response = await fetch(`${API}/save`, {
@@ -243,24 +279,25 @@ window.__ModuleLoader__.load({
           })
           const body = await response.json().catch(() => null)
           if (!response.ok || body === null) throw new Error(body?.error ?? `HTTP ${response.status}`)
-          setNotice({ kind: 'ok', text: `${t('savedResult')} · ${body.sessions} ${t('sessionsCol')} → ${body.directory}` })
+          setNotice({ kind: 'ok', text: `${t('savedResult')} ${body.directory}` })
         } catch (error) {
           setNotice({ kind: 'error', text: String(error?.message ?? error) })
         } finally {
-          setBusy('')
+          setBusy(false)
         }
       }, [selected, formats, workspacePath, t])
 
-      const refresh = () => setNonce(nonce + 1)
+      const busyButton = (disabled) => ({ ...S.button, ...(disabled ? S.buttonDisabled : {}) })
 
       return h('div', { style: S.root },
         h('div', { style: S.header },
-          h('div', { style: S.titleRow }, h('h1', { style: S.title }, t('title')), h('span', { style: S.version }, 'dsh-session-exporter · v0.1.0')),
+          h('div', { style: S.titleRow }, h('h1', { style: S.title }, t('title')), h('span', { style: S.version }, 'dsh-session-exporter v0.1.0')),
           h('p', { style: S.subtitle }, t('subtitle')),
         ),
         h('div', { style: S.body },
+          // row 1: scope + formats
           h('div', { style: S.toolbar },
-            h('button', { style: S.button, type: 'button', onClick: refresh }, t('refresh')),
+            h('span', { style: S.label }, t('workspace')),
             h('select', {
               style: S.select,
               value: allMode ? '__all__' : workspace,
@@ -271,48 +308,53 @@ window.__ModuleLoader__.load({
             },
             workspaces.map((entry) => h('option', { key: entry.id ?? entry.path, value: entry.path }, `${entry.title || entry.path} (${entry.sessionCount})`)),
             h('option', { value: '__all__' }, t('allSessions'))),
-            h('span', { style: S.muted }, `${sessions.length} ${t('sessions')} · ${selected.length} ${t('selected')}`),
-            h('span', { style: S.muted }, t('formats')),
-            ['md', 'json', 'jsonl', 'qa'].map((format) => h('label', { key: format, style: { display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 11.5, color: 'var(--dsw-alias-label-secondary)' } },
+            h('button', { style: S.button, type: 'button', onClick: () => setNonce(nonce + 1) }, t('refresh')),
+            h('span', { style: S.sep }),
+            h('span', { style: S.label }, t('formats')),
+            ['md', 'json', 'jsonl', 'qa'].map((format) => h('label', { key: format, style: S.checkGroup },
               h('input', { type: 'checkbox', style: S.checkbox, checked: formats.includes(format), onChange: () => toggleFormat(format) }),
               format)),
+            h('span', { style: S.spacer }),
+            h('span', { style: S.muted }, `${t('total')} ${sessions.length} · ${t('selected')} ${selected.length}`),
           ),
-          sessionsState.status === 'loading' ? h('div', { style: S.state }, t('loading')) : null,
-          sessionsState.status === 'error' ? h('div', { style: S.error }, `${t('error')}: ${sessionsState.error}`) : null,
-          h(Card, {
-            title: `${t('title')} · ${allMode ? t('allSessions') : workspacePath || t('unknown')}`,
-            hint: t('hint'),
-            actions: [
-              h('button', { key: 'all', style: S.button, type: 'button', onClick: () => setSelected(allSelected ? [] : sessions.map((row) => row.id)) }, allSelected ? t('clear') : t('selectAll')),
-              h('a', { key: 'zip', style: S.buttonPrimary, href: `${API}/export-all?${allMode ? 'all=1' : `workspace=${encodeURIComponent(workspacePath)}`}&formats=${formats.join(',')}`, download: '' }, t('downloadAll')),
-              h('button', { key: 'saveall', style: S.button, type: 'button', disabled: busy !== '', onClick: () => save('all') }, t('saveAll')),
-              h('button', { key: 'savesel', style: S.button, type: 'button', disabled: busy !== '' || selected.length === 0, onClick: () => save('selected') }, t('saveToWorkspace')),
-            ],
-          },
-            notice === null ? null : h('div', { style: notice.kind === 'error' ? S.error : { ...S.muted, marginBottom: 8, wordBreak: 'break-all' } }, notice.text),
+          // row 2: actions
+          h('div', { style: S.toolbar },
+            h('button', { style: S.button, type: 'button', onClick: () => setSelected(allSelected ? [] : sessions.map((row) => row.id)) }, allSelected ? t('clear') : t('selectAll')),
+            h('a', {
+              style: S.buttonPrimary,
+              href: `${API}/export-all?${allMode ? 'all=1' : `workspace=${encodeURIComponent(workspacePath)}`}&formats=${formats.join(',')}`,
+              download: '',
+            }, t('downloadAll')),
+            h('button', { style: busyButton(busy || allMode || workspacePath === ''), type: 'button', disabled: busy || allMode || workspacePath === '', onClick: () => save('all') }, t('saveAll')),
+            h('button', { style: busyButton(busy || allMode || selected.length === 0), type: 'button', disabled: busy || allMode || selected.length === 0, onClick: () => save('selected') }, t('saveSelected')),
+            notice === null ? null : h('span', { style: notice.kind === 'error' ? S.noticeError : S.noticeOk, title: notice.text }, notice.text),
+          ),
+          // table
+          h('div', { style: S.tableBox },
+            h('div', { style: S.head },
+              h('span'),
+              h('span', null, t('titleCol')),
+              h('span', null, t('idCol')),
+              h('span', { style: { textAlign: 'right' } }, t('events')),
+              h('span', { style: { textAlign: 'right' } }, t('size')),
+              h('span', null, t('created')),
+              h('span', null, t('actions')),
+            ),
+            sessionsState.status === 'loading' ? h('div', { style: S.state }, t('loading')) : null,
+            sessionsState.status === 'error' ? h('div', { style: S.errorBox }, `${t('error')}: ${sessionsState.error}`) : null,
             sessionsState.status === 'ready' && sessions.length === 0 ? h('div', { style: S.state }, t('noSessions')) : null,
-            sessionsState.status === 'ready' && sessions.length > 0 ? h('div', null,
-              h('div', { style: S.rowHead },
-                h('span', null, ''),
-                h('span', null, t('titleCol')),
-                h('span', null, t('idCol')),
-                h('span', null, t('events')),
-                h('span', null, t('size')),
-                h('span', null, t('created')),
-                h('span', null, t('actions')),
-              ),
-              sessions.map((row) => h('div', { key: row.id, style: S.row },
-                h('input', { type: 'checkbox', style: S.checkbox, checked: selected.includes(row.id), onChange: () => toggleSelected(row.id) }),
-                h('span', { style: { ...S.mono, whiteSpace: 'normal' }, title: row.title || row.id }, row.title || `${t('unknown')} ${shortId(row.id)}`),
-                h('span', { style: S.mono, title: row.id }, shortId(row.id)),
-                h('span', { style: S.mono }, row.events === null ? '—' : String(row.events)),
-                h('span', { style: S.mono }, fmtBytes(row.bytes)),
-                h('span', { style: S.mono }, formatTime(row.createdAt)),
-                h('span', null, ['md', 'json', 'qa'].map((format) => h('a', { key: format, style: S.link, href: downloadUrl(row.id, format), download: '' }, format))),
-              )),
-            ) : null,
+            sessionsState.status === 'ready' ? sessions.map((row) => h('div', { key: row.id, style: S.row },
+              h('input', { type: 'checkbox', style: S.checkbox, checked: selected.includes(row.id), onChange: () => toggleSelected(row.id) }),
+              h('span', { style: S.cellTitle, title: row.title || row.id }, row.title || t('unknown')),
+              h('span', { style: S.mono, title: row.id }, shortId(row.id)),
+              h('span', { style: S.num }, row.events === null ? '—' : String(row.events)),
+              h('span', { style: S.num }, fmtBytes(row.bytes)),
+              h('span', { style: S.mono }, formatTime(row.createdAt)),
+              h('span', null, ['md', 'json', 'qa'].map((format) => h('a', { key: format, style: S.link, href: downloadUrl(row.id, format), download: '' }, t(format)))),
+            )) : null,
           ),
-          h('p', { style: S.hint }, t('toolHint')),
+          h('p', { style: S.hint }, t('hint')),
+          h('p', { style: { ...S.hint, margin: '2px 0 0' } }, t('toolHint')),
         ),
       )
     }
